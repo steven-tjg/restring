@@ -206,6 +206,7 @@ const of = (type: StringType, ...models: string[]): StringModel[] => models.map(
  * models here; values are stored as plain text, so adding never breaks saved data.
  */
 export const STRING_CATALOG: Record<string, StringModel[]> = {
+  Restring: of('poly', 'Zero', 'Sync', 'Slap', 'Vivo'),
   Luxilon: [
     ...of(
       'poly',
