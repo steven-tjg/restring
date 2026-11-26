@@ -173,6 +173,17 @@ export function addStringJob(data: NewStringJob): string {
   return ref.id;
 }
 
+export type StringJobEdit = Pick<
+  StringJob,
+  | 'setup' | 'mainsType' | 'crossesType' | 'mainsBrand' | 'mainsModel' | 'crossesBrand' | 'crossesModel'
+  | 'mainsName' | 'crossesName' | 'gauge' | 'tensionMain' | 'tensionCross' | 'strungAt' | 'cost'
+>;
+
+/** Edits the details of a string (active or past). Playtime, status and cut info are untouched. */
+export function updateStringJob(id: string, data: StringJobEdit): void {
+  updateDoc(doc(col('stringJobs'), id), { ...data }).catch(fail);
+}
+
 /** Ends the active string. The racquet is then unstrung until a new string is added. */
 export function cutStringJob(job: StringJob, endedAt: string, reason: CutReason): void {
   const batch = writeBatch(db);

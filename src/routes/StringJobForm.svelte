@@ -1,17 +1,20 @@
 <script lang="ts">
   import { racquetTitle, stringTypeOf } from '../lib/catalog';
-  import { addStringJob, limits, profile, racquets, stringJobs } from '../lib/db';
+  import { addStringJob, limits, profile, racquets, stringJobs, updateStringJob } from '../lib/db';
   import { toDateStr } from '../lib/restring';
   import { back, go } from '../lib/router';
   import StringPicker from '../lib/StringPicker.svelte';
   import type { Setup } from '../lib/types';
 
-  let { racquetId }: { racquetId: string } = $props();
+  let { racquetId, jobId = undefined }: { racquetId: string; jobId?: string } = $props();
 
   const racquet = $derived($racquets.find((r) => r.id === racquetId));
-  const unit = $derived($profile?.unit ?? 'lb');
   const jobs = $derived($stringJobs.filter((j) => j.racquetId === racquetId));
-  const active = $derived(jobs.find((j) => j.id === racquet?.activeStringJobId && j.status === 'active'));
+  const editJob = $derived(jobId ? jobs.find((j) => j.id === jobId) : undefined);
+  const unit = $derived(editJob?.unit ?? $profile?.unit ?? 'lb');
+  const activeJob = $derived(jobs.find((j) => j.id === racquet?.activeStringJobId && j.status === 'active'));
+  // Editing never needs the "cut first" gate.
+  const active = $derived(jobId ? undefined : activeJob);
   // Most recent finished string: offered as a one-tap starting point for the next one.
   const last = $derived(
     jobs.filter((j) => j.id !== active?.id).sort((a, b) => b.createdAt - a.createdAt)[0],
@@ -42,6 +45,24 @@
     tensionCross = last.tensionCross;
   }
 
+  // Edit mode: prefill once, when the job arrives (data may load after the page).
+  let filled = false;
+  $effect(() => {
+    const j = editJob;
+    if (!j || filled) return;
+    filled = true;
+    setup = j.setup;
+    mainsBrand = j.mainsBrand ?? '';
+    mainsModel = j.mainsModel ?? '';
+    crossesBrand = j.crossesBrand ?? '';
+    crossesModel = j.crossesModel ?? '';
+    gauge = j.gauge;
+    tensionMain = j.tensionMain;
+    tensionCross = j.tensionCross;
+    strungAt = j.strungAt;
+    cost = j.cost;
+  });
+
   function save(e: Event) {
     e.preventDefault();
     const full = setup === 'full';
@@ -50,6 +71,27 @@
     const mainsType = stringTypeOf(mainsBrand, mainsModel);
     const crossesType = stringTypeOf(cBrand, cModel);
     if (!mainsType || !crossesType) return;
+
+    if (jobId) {
+      updateStringJob(jobId, {
+        setup,
+        mainsType,
+        crossesType,
+        mainsBrand,
+        mainsModel,
+        crossesBrand: cBrand,
+        crossesModel: cModel,
+        mainsName: `${mainsBrand} ${mainsModel}`,
+        crossesName: `${cBrand} ${cModel}`,
+        gauge: gauge.trim(),
+        tensionMain: tensionMain || null,
+        tensionCross: tensionCross || null,
+        strungAt,
+        cost: cost || null,
+      });
+      back(`/racquet/${racquetId}`);
+      return;
+    }
 
     addStringJob({
       racquetId,
@@ -76,7 +118,7 @@
 <main class="page">
   <div class="topbar">
     <button class="link" onclick={() => back(`/racquet/${racquetId}`)}>‹ Back</button>
-    <h1>New string</h1>
+    <h1>{jobId ? 'Edit string' : 'New string'}</h1>
   </div>
   {#if racquet}
     <p class="muted" style="margin-bottom:0.8rem">For {racquetTitle(racquet)}.</p>
@@ -89,7 +131,7 @@
     </div>
   {:else}
   <form onsubmit={save}>
-    {#if last}
+    {#if last && !jobId}
       <button type="button" class="block" style="margin-bottom:0.9rem" onclick={useLast}>
         Same as last string
       </button>
@@ -129,7 +171,7 @@
       <label>Cost (optional)<input type="number" inputmode="decimal" min="0" step="any" bind:value={cost} /></label>
     </div>
 
-    <button class="primary block">Save string</button>
+    <button class="primary block">{jobId ? 'Save changes' : 'Save string'}</button>
   </form>
   {/if}
 </main>

@@ -84,6 +84,7 @@
           <a class="btn primary grow" href="#/racquet/{id}/playtime">+ Add playtime</a>
           <a class="btn grow" href="#/racquet/{id}/cut">Cut string</a>
         </div>
+        <a class="btn block" style="margin-top:0.6rem" href="#/racquet/{id}/string/{active.id}">Edit string</a>
       </section>
 
       <div class="tiles">
@@ -97,7 +98,8 @@
         <div class="tile"><div class="k">Pace</div><div class="v">{ev.weeklyHours.toFixed(1)} h / week</div></div>
         <div class="tile"><div class="k">Tension (M / X)</div><div class="v">{tension(active)}</div></div>
         <div class="tile"><div class="k">Gauge</div><div class="v">{active.gauge || '–'}</div></div>
-        <div class="tile" style="grid-column:1 / -1"><div class="k">Strung</div><div class="v">{active.strungAt}</div></div>
+        <div class="tile"><div class="k">Strung</div><div class="v">{active.strungAt}</div></div>
+        <div class="tile"><div class="k">Cost</div><div class="v">{active.cost ?? '–'}</div></div>
       </div>
 
       <h2>Playtime · {fmtHours(active.playedMinutes)} total</h2>
@@ -185,6 +187,7 @@
             {/each}
           </div>
 
+          <a class="btn" style="margin-top:0.6rem" href="#/racquet/{id}/string/{j.id}">Edit string</a>
           <button class="link" style="color:var(--danger);margin-top:0.6rem" onclick={() => removeJob(j)}>
             Delete this string
           </button>

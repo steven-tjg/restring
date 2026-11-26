@@ -36,6 +36,7 @@ const ROUTES: Array<[string, string]> = [
   ['racquet', '/racquet/:id'],
   ['racquetEdit', '/racquet/:id/edit'],
   ['stringNew', '/racquet/:id/string'],
+  ['stringEdit', '/racquet/:id/string/:jobId'],
   ['playtime', '/racquet/:id/playtime'],
   ['cut', '/racquet/:id/cut'],
 ];

@@ -61,6 +61,8 @@
     <RacquetForm id={m.params.id} />
   {:else if m.name === 'stringNew'}
     <StringJobForm racquetId={m.params.id} />
+  {:else if m.name === 'stringEdit'}
+    <StringJobForm racquetId={m.params.id} jobId={m.params.jobId} />
   {:else if m.name === 'cut'}
     <Cut racquetId={m.params.id} />
   {:else if m.name === 'playtime'}
