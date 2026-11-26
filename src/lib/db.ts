@@ -22,6 +22,9 @@ export const profile = writable<Profile | null>(null);
 export const dataReady = writable(false);
 export const limits = derived(profile, ($p) => mergeLimits($p?.customLimits));
 
+/** Persistent message when Firestore listeners fail (not created, rules missing). */
+export const syncError = writable('');
+
 export const toast = writable<string>('');
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
 export function say(msg: string): void {
@@ -32,7 +35,12 @@ export function say(msg: string): void {
 
 function fail(e: unknown): void {
   console.error(e);
-  say('Could not save. Check your connection.');
+  const code = (e as { code?: string })?.code;
+  say(
+    code === 'permission-denied'
+      ? 'Save blocked: publish firestore.rules in the Firebase console.'
+      : `Could not save${code ? ` (${code})` : ''}. Check your connection.`,
+  );
 }
 
 function uid(): string {
@@ -63,18 +71,35 @@ export function startSync(userId: string, fallbackName: string, email: string): 
     if (pending.size === 0) dataReady.set(true);
   };
 
+  syncError.set('');
+  // A failed listener must not leave the app stuck on "Loading": show the error instead.
+  const onError = (k: string) => (e: unknown) => {
+    const code = (e as { code?: string })?.code ?? 'unknown';
+    console.error(`Firestore ${k}:`, e);
+    syncError.set(
+      code === 'permission-denied'
+        ? 'Database access denied. Publish firestore.rules in the Firebase console.'
+        : `Cannot load data (${code}). Check that Firestore is created in the Firebase console.`,
+    );
+    mark(k);
+  };
+
   unsubs.push(
-    onSnapshot(doc(db, 'users', userId), (snap) => {
-      const d = snap.data() as Partial<Profile> | undefined;
-      profile.set({
-        name: d?.name ?? fallbackName,
-        email: d?.email ?? email,
-        unit: d?.unit ?? 'kg',
-        customLimits: d?.customLimits,
-        createdAt: d?.createdAt ?? 0,
-      });
-      mark('profile');
-    }),
+    onSnapshot(
+      doc(db, 'users', userId),
+      (snap) => {
+        const d = snap.data() as Partial<Profile> | undefined;
+        profile.set({
+          name: d?.name ?? fallbackName,
+          email: d?.email ?? email,
+          unit: d?.unit ?? 'lb',
+          customLimits: d?.customLimits,
+          createdAt: d?.createdAt ?? 0,
+        });
+        mark('profile');
+      },
+      onError('profile'),
+    ),
   );
 
   const watch = <T extends { id: string }>(
@@ -83,10 +108,14 @@ export function startSync(userId: string, fallbackName: string, email: string): 
     sort: (a: T, b: T) => number,
   ) =>
     unsubs.push(
-      onSnapshot(collection(db, 'users', userId, name), (snap) => {
-        store.set(snap.docs.map((d) => ({ ...(d.data() as object), id: d.id }) as T).sort(sort));
-        mark(name);
-      }),
+      onSnapshot(
+        collection(db, 'users', userId, name),
+        (snap) => {
+          store.set(snap.docs.map((d) => ({ ...(d.data() as object), id: d.id }) as T).sort(sort));
+          mark(name);
+        },
+        onError(name),
+      ),
     );
 
   watch<Racquet>('racquets', racquets, (a, b) => a.createdAt - b.createdAt);
@@ -99,6 +128,8 @@ export function startSync(userId: string, fallbackName: string, email: string): 
 
 export function saveProfile(patch: Partial<Profile>): void {
   const data: DocumentData = { ...patch };
+  // Show the change at once; the listener restores the stored value if the write is rejected.
+  profile.update((p) => (p ? { ...p, ...patch } : p));
   setDoc(doc(db, 'users', uid()), data, { merge: true }).catch(fail);
 }
 

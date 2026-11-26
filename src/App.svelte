@@ -1,6 +1,6 @@
 <script lang="ts">
   import { authReady, user } from './lib/auth';
-  import { dataReady, startSync, stopSync, toast } from './lib/db';
+  import { dataReady, startSync, stopSync, syncError, toast } from './lib/db';
   import { go, match, path } from './lib/router';
   import Auth from './routes/Auth.svelte';
   import Home from './routes/Home.svelte';
@@ -42,6 +42,9 @@
 {:else if !$dataReady}
   <div class="splash">Loading…</div>
 {:else}
+  {#if $syncError}
+    <div class="page" style="padding-bottom:0"><p class="error card">{$syncError}</p></div>
+  {/if}
   {#if m.name === 'home'}
     <Home />
   {:else if m.name === 'settings'}

@@ -27,7 +27,7 @@ export async function signUp(name: string, email: string, password: string): Pro
   setDoc(doc(db, 'users', cred.user.uid), {
     name,
     email,
-    unit: 'kg',
+    unit: 'lb',
     createdAt: Date.now(),
   }).catch(() => {});
   user.set(auth.currentUser);
@@ -62,7 +62,12 @@ export function friendlyError(e: unknown): string {
       return 'Too many attempts. Wait a moment and try again.';
     case 'auth/network-request-failed':
       return 'No connection. Check your signal and try again.';
+    case 'auth/operation-not-allowed':
+    case 'auth/configuration-not-found':
+      return 'Email/password sign-in is not enabled in Firebase yet (Authentication > Sign-in method).';
+    case 'auth/unauthorized-domain':
+      return 'This domain is not authorized in Firebase (Authentication > Settings > Authorized domains).';
     default:
-      return 'Something went wrong. Please try again.';
+      return `Something went wrong (${code || 'unknown error'}). Please try again.`;
   }
 }
