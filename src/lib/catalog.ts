@@ -1,7 +1,7 @@
 import type { StringJob, StringType } from './types';
 
 /** Popular racquets by brand. Edit freely: values are stored as plain text. */
-export const RACQUET_CATALOG: Record<string, string[]> = {
+const RACQUET_BASE: Record<string, string[]> = {
   Wilson: [
     'Defyer 98 Pro',
     'Defyer 100',
@@ -193,6 +193,26 @@ export const RACQUET_CATALOG: Record<string, string[]> = {
   ],
 };
 
+/** Older (1990s to 2010s) and newer models, merged into the base lists without duplicates. */
+const RACQUET_EXTRA: Record<string, string[]> = {
+  Wilson: ['Profile 2.7', 'Pro Staff 85', 'Pro Staff 6.0 85', 'Pro Staff 6.0 95', 'Pro Staff Six.One 95', 'Pro Staff Six.One Tour 90', 'nCode nSix-One 95', 'K Factor KSix-One 95', 'K Factor KBlade 98', 'K Factor KPro Staff 97', 'BLX Blade 98', 'BLX Six.One 95', 'BLX Pro Staff 97', 'Pro Staff 97 v14', 'Blade 98 v9', 'Hammer 5.0', 'Hammer 6.2', 'Triad 3', 'Triad 5', 'Juice 100', 'Juice 100S', 'Juice Pro 96', 'Steam 99S', 'Steam 105S', 'Burn 95', 'Burn FST 99', 'Clash 100 v2', 'Clash 98 v2', 'Clash 100 Pro v2', 'Clash 100L v2', 'Clash 100UL v2'],
+  Babolat: ['Pure Drive 107', 'Pure Drive 110', 'Pure Drive Tour', 'Pure Drive VS', 'Pure Drive Roddick', 'Pure Drive GT', 'Aero Pro Drive', 'Aero Pro Drive GT', 'Aero Storm', 'Pure Storm', 'Pure Control', 'Pure Aero VS', 'Pure Aero Tour', 'Pure Strike VS', 'Pure Strike Tour', 'Pure Strike Team', 'Pure Strike 97', 'Pure Strike 98 18x20', 'Pure Strike Evo', 'Contact Team'],
+  Head: ['Pro Tour 630', 'Prestige Classic 600', 'Prestige Tour', 'Prestige Mid', 'Prestige Rev Pro', 'Radical OS', 'Radical Tour', 'Ti.S6', 'Ti.S5', 'Ti.Radical', 'Liquidmetal Radical', 'Liquidmetal Prestige', 'Microgel Radical', 'Microgel Prestige', 'Microgel Extreme', 'Flexpoint Radical', 'Flexpoint Prestige', 'i.Radical', 'i.Prestige', 'i.S12', 'Youtek IG Speed MP', 'Youtek IG Radical MP', 'Youtek IG Prestige MP', 'Youtek Graphene Speed MP', 'Graphene 360 Speed MP', 'Graphene 360+ Speed MP', 'Graphene 360+ Radical MP', 'Graphene 360+ Prestige MP', 'Graphene 360+ Gravity MP', 'Graphene 360+ Extreme MP', 'Graphene 360+ Instinct MP', 'Graphene 360+ Boom MP', 'Extreme Tour'],
+  Yonex: ['RDS 001 MP', 'RDiS 100', 'VCORE Pro 97', 'VCORE Pro 100', 'VCORE Duel G 97', 'VCORE Tour G 97', 'VCORE SV 98', 'VCORE Si 98', 'VCORE Xi 98', 'VCORE Xi 100', 'EZONE DR 98', 'EZONE Ai 98', 'EZONE Ai 100', 'EZONE Xi 98', 'EZONE 100SL'],
+  Prince: ['Graphite 90', 'Thunderstick', 'Triple Threat Bandit', 'Triple Threat Rebel', 'Triple Threat Hornet', 'Triple Threat Warrior', 'O3 Tour', 'O3 Speedport Black', 'O3 Hybrid Hornet', 'EXO3 Rebel 98', 'EXO3 Tour 100', 'EXO3 Warrior 100', 'Tour 95', 'Tour Pro 100', 'Beast 100', 'Beast 104', 'Phantom Pro 100', 'Phantom 93P', 'Textreme Tour 98'],
+  Tecnifibre: ['T-Fight 280', 'T-Fight 295', 'T-Fight 300 Isoflex', 'T-Fight 315 Isoflex', 'T-Fight 320', 'T-Fight 325', 'T-Fight RS 300', 'T-Flash 300', 'Tempo 285', 'Fire 285', 'Fire 300', 'Fire 305S'],
+  Dunlop: ['Max 200G', 'Muscleweave Max 200G', 'Aerogel 4D 200', 'Biomimetic 200', 'Biomimetic 300', 'Biomimetic 500', 'Force 98', 'Force 100', 'CX 200 LS', 'FX Team 100'],
+  Volkl: ['Organix 5', 'Organix 6', 'Organix 8', 'Organix 9', 'Organix 10', 'Catapult 10', 'Tour 10 V-Engine', 'Tour 8', 'Power Bridge 10 Mid', 'DNX 8', 'DNX 10', 'V-Feel 8', 'V-Feel 10', 'Super G 8', 'Super G 10'],
+  Pacific: ['BXT X Force Pro', 'BXT X Fast Pro'],
+};
+
+export const RACQUET_CATALOG: Record<string, string[]> = Object.fromEntries(
+  [...new Set([...Object.keys(RACQUET_BASE), ...Object.keys(RACQUET_EXTRA)])].map((brand) => [
+    brand,
+    [...new Set([...(RACQUET_BASE[brand] ?? []), ...(RACQUET_EXTRA[brand] ?? [])])],
+  ]),
+);
+
 export interface StringModel {
   model: string;
   type: StringType;
@@ -205,7 +225,7 @@ const of = (type: StringType, ...models: string[]): StringModel[] => models.map(
  * brand sites). Each model carries its type so the type never needs picking. Add new
  * models here; values are stored as plain text, so adding never breaks saved data.
  */
-export const STRING_CATALOG: Record<string, StringModel[]> = {
+const STRING_BASE: Record<string, StringModel[]> = {
   Restring: of('poly', 'Zero', 'Sync', 'Slap', 'Vivo'),
   Luxilon: [
     ...of(
@@ -350,6 +370,36 @@ export const STRING_CATALOG: Record<string, StringModel[]> = {
     'Competition',
   ),
 };
+
+const STRING_EXTRA: Record<string, StringModel[]> = {
+  Luxilon: of('poly', 'Timo', 'M2 Pro'),
+  Babolat: [...of('poly', 'Pro Hurricane Tour', 'Pro Hurricane'), ...of('multi', 'Tonic + Ball Feel', 'Syntec Pro', 'Syntec Team')],
+  Wilson: [...of('poly', 'Revolve Twist', 'Duraspin'), ...of('multi', 'Sensation Plus', 'NXT Tour', 'Stamina Power', 'Stamina Spin')],
+  Head: [...of('poly', 'Hawk Rough', 'Hawk Tour'), ...of('multi', 'Intellitour'), ...of('syngut', 'Synthetic Gut PPS')],
+  Tecnifibre: [...of('multi', 'NRG2 SPL'), ...of('syngut', 'Duramix HD'), ...of('natural', 'Natural Gut')],
+  Yonex: of('multi', 'Rexis Speed', 'Rexis Feel', 'Multi Sensa'),
+  Kirschbaum: of('poly', 'Spiky Shape'),
+  Prince: [...of('multi', 'Premier Touch', 'Premier Control', 'Premier Power'), ...of('syngut', 'Synthetic Gut Duraflex', 'Synthetic Gut Original', 'Lightning XX'), ...of('poly', 'Beast XP')],
+  Gamma: [...of('poly', 'Moto', 'Zo Verve', 'Zo Power', 'Ocho'), ...of('multi', 'Live Wire Professional'), ...of('syngut', 'Live Wire XP')],
+  Diadem: of('poly', 'Solstice Power', 'Solstice Black', 'Solstice Black Rough', 'Elevate', 'Rise'),
+  'Weiss CANNON': of('poly', 'Ultra Cable', 'Silverstring'),
+  'Signum Pro': of('poly', 'Poly Plasma', 'Poly Plasma Pure', 'Hexonic'),
+  Isospeed: of('poly', 'Baseline', 'Baseline Rough', 'Cream', 'Professional'),
+  Ashaway: [...of('poly', 'MonoGut ZX'), ...of('multi', 'Crossfire ZX')],
+  Volkl: of('poly', 'Cyclone', 'Cyclone Tour'),
+  Dunlop: of('multi', 'Explosive', 'Silk'),
+  "Pro's Pro": of('poly', 'Hexaspin Twist', 'Hexaspin'),
+};
+
+export const STRING_CATALOG: Record<string, StringModel[]> = Object.fromEntries(
+  [...new Set([...Object.keys(STRING_BASE), ...Object.keys(STRING_EXTRA)])].map((brand) => {
+    const seen = new Set<string>();
+    const models = [...(STRING_BASE[brand] ?? []), ...(STRING_EXTRA[brand] ?? [])].filter(
+      (m) => !seen.has(m.model) && seen.add(m.model),
+    );
+    return [brand, models];
+  }),
+);
 
 export const racquetBrands = (): string[] => Object.keys(RACQUET_CATALOG);
 export const racquetModels = (brand: string): string[] => RACQUET_CATALOG[brand] ?? [];
