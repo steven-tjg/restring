@@ -1,9 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#2f7d32"/>
-  <g fill="none" stroke="#e6f27a" stroke-width="14" stroke-linecap="round">
-    <ellipse cx="256" cy="230" rx="130" ry="160"/>
-    <path d="M256 70v320M150 120c30 40 30 200 0 240M362 120c-30 40-30 200 0 240"/>
-    <path d="M135 170h242M126 230h260M135 290h242"/>
+  <defs>
+    <radialGradient id="ball" cx="38%" cy="32%" r="80%">
+      <stop offset="0" stop-color="#f0ff7a"/>
+      <stop offset="0.6" stop-color="#d4f23a"/>
+      <stop offset="1" stop-color="#b6d61c"/>
+    </radialGradient>
+    <clipPath id="clip"><circle cx="256" cy="256" r="176"/></clipPath>
+  </defs>
+  <rect width="512" height="512" fill="#17623a"/>
+  <circle cx="256" cy="256" r="176" fill="url(#ball)"/>
+  <g clip-path="url(#clip)" fill="none" stroke="#ffffff" stroke-width="16" stroke-linecap="round">
+    <path d="M118 120C214 190 214 322 118 392"/>
+    <path d="M394 120C298 190 298 322 394 392"/>
   </g>
-  <path d="M256 392v70" stroke="#e6f27a" stroke-width="26" stroke-linecap="round"/>
 </svg>

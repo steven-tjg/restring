@@ -17,8 +17,8 @@ export default defineConfig({
         scope: '/restring/',
         display: 'standalone',
         orientation: 'portrait',
-        background_color: '#f4f7f2',
-        theme_color: '#2f7d32',
+        background_color: '#17623a',
+        theme_color: '#17623a',
         icons: [
           { src: 'pwa-64x64.png', sizes: '64x64', type: 'image/png' },
           { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { logOut } from '../lib/auth';
   import { limits, profile, saveProfile, say, setUnit } from '../lib/db';
-  import { back, go } from '../lib/router';
+  import { go } from '../lib/router';
   import { DEFAULT_LIMITS, STRING_TYPES } from '../lib/stringTypes';
   import type { Limits, StringType, Unit } from '../lib/types';
 
@@ -43,9 +43,8 @@
   }
 </script>
 
-<main class="page">
+<main class="page with-nav">
   <div class="topbar">
-    <button class="link" onclick={() => back('/')}>‹ Back</button>
     <h1>Settings</h1>
   </div>
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Ring from './Ring.svelte';
   import { jobLabel, type Evaluation } from './restring';
   import type { StringJob } from './types';
 
@@ -17,23 +18,20 @@
   );
 </script>
 
-<div class="row between">
-  <strong>{jobLabel(job)}</strong>
-  <span class="badge {ev.status}">{label}</span>
+<div class="row" style="gap:1rem">
+  <Ring pct={ev.pct} status={ev.status} />
+  <div class="grow">
+    <div class="row between">
+      <strong>{jobLabel(job)}</strong>
+      <span class="badge {ev.status}">{label}</span>
+    </div>
+    <p class="muted">{ev.playedHours.toFixed(1)} / {ev.limit.hours} h · {ev.daysSince} / {ev.limit.days} days</p>
+    <p><strong>{when}</strong></p>
+  </div>
 </div>
 
-<div class="bar {ev.status}" role="progressbar" aria-valuenow={Math.round(ev.pct * 100)} aria-valuemin="0" aria-valuemax="100">
-  <span style="width:{Math.min(100, ev.pct * 100)}%"></span>
-</div>
-
-<div class="row between muted">
-  <span>{ev.playedHours.toFixed(1)} / {ev.limit.hours} h played</span>
-  <span>{ev.daysSince} / {ev.limit.days} days</span>
-</div>
-
-<p style="margin-top:0.5rem"><strong>{when}</strong></p>
 {#if ev.status !== 'now' && ev.weeklyHours === 0}
-  <p class="muted">Log your play time to improve this estimate.</p>
+  <p class="muted" style="margin-top:0.5rem">Add playtime to improve this estimate.</p>
 {/if}
 
 {#if showTips}

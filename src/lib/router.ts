@@ -36,7 +36,8 @@ const ROUTES: Array<[string, string]> = [
   ['racquet', '/racquet/:id'],
   ['racquetEdit', '/racquet/:id/edit'],
   ['stringNew', '/racquet/:id/string'],
-  ['logPlay', '/racquet/:id/log'],
+  ['playtime', '/racquet/:id/playtime'],
+  ['cut', '/racquet/:id/cut'],
 ];
 
 export function match(p: string): Match {

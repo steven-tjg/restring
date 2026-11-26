@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_LIMITS } from './stringTypes';
-import { evaluate, jobLimit, statusFor, toDateStr } from './restring';
+import {
+  costPerHour,
+  daysBetweenDates,
+  endLabel,
+  evaluate,
+  fmtHours,
+  jobLimit,
+  statusFor,
+  toDateStr,
+} from './restring';
 import type { Session, StringJob } from './types';
 
 const NOW = new Date(2026, 5, 15); // 15 Jun 2026
@@ -39,10 +48,38 @@ function session(daysAgo: number, minutes: number): Session {
     racquetId: 'r1',
     playedAt: ago(daysAgo),
     minutes,
-    kind: 'match',
+    remark: '',
     createdAt: 0,
   };
 }
+
+describe('cut helpers', () => {
+  it('endLabel uses the reason, then legacy status', () => {
+    expect(endLabel({ status: 'cut', endReason: 'tension' })).toBe('Lost tension');
+    expect(endLabel({ status: 'broken' })).toBe('Broke');
+    expect(endLabel({ status: 'retired' })).toBe('Replaced');
+    expect(endLabel({ status: 'cut' })).toBe('Cut');
+  });
+  it('daysBetweenDates', () => {
+    expect(daysBetweenDates('2026-01-01', '2026-01-31')).toBe(30);
+    expect(daysBetweenDates('2026-05-10', '2026-05-10')).toBe(0);
+  });
+  it('costPerHour', () => {
+    expect(costPerHour(30, 600)).toBe(3);
+    expect(costPerHour(null, 600)).toBeNull();
+    expect(costPerHour(30, 0)).toBeNull();
+  });
+});
+
+describe('fmtHours', () => {
+  it('formats stored minutes as hours', () => {
+    expect(fmtHours(0)).toBe('0 h');
+    expect(fmtHours(45)).toBe('0.75 h');
+    expect(fmtHours(120)).toBe('2 h');
+    expect(fmtHours(750)).toBe('12.5 h');
+    expect(fmtHours(100)).toBe('1.67 h');
+  });
+});
 
 describe('statusFor', () => {
   it('thresholds', () => {

@@ -12,7 +12,7 @@ import { derived, get, writable } from 'svelte/store';
 import { user } from './auth';
 import { db } from './firebase';
 import { mergeLimits, toDateStr } from './restring';
-import type { Profile, Racquet, Session, StringJob, Unit } from './types';
+import type { CutReason, Profile, Racquet, Session, StringJob, Unit } from './types';
 
 export const racquets = writable<Racquet[]>([]);
 export const stringJobs = writable<StringJob[]>([]);
@@ -164,7 +164,7 @@ export function addStringJob(data: NewStringJob): string {
   const today = toDateStr(new Date());
   for (const j of get(stringJobs)) {
     if (j.racquetId === data.racquetId && j.status === 'active') {
-      batch.update(doc(col('stringJobs'), j.id), { status: 'retired', endedAt: today });
+      batch.update(doc(col('stringJobs'), j.id), { status: 'cut', endedAt: today, endReason: 'change' });
     }
   }
   batch.set(ref, { ...data, playedMinutes: 0, status: 'active', endedAt: null, createdAt: Date.now() });
@@ -173,21 +173,24 @@ export function addStringJob(data: NewStringJob): string {
   return ref.id;
 }
 
-export function markBroken(job: StringJob): void {
+/** Ends the active string. The racquet is then unstrung until a new string is added. */
+export function cutStringJob(job: StringJob, endedAt: string, reason: CutReason): void {
   const batch = writeBatch(db);
-  batch.update(doc(col('stringJobs'), job.id), { status: 'broken', endedAt: toDateStr(new Date()) });
+  batch.update(doc(col('stringJobs'), job.id), { status: 'cut', endedAt, endReason: reason });
   batch.update(doc(col('racquets'), job.racquetId), { activeStringJobId: null });
   batch.commit().catch(fail);
 }
 
-export function logSession(data: Pick<Session, 'stringJobId' | 'racquetId' | 'playedAt' | 'minutes' | 'kind'>): void {
+export function logSession(
+  data: Pick<Session, 'stringJobId' | 'racquetId' | 'playedAt' | 'minutes'> & { remark: string },
+): void {
   const batch = writeBatch(db);
   batch.set(doc(col('sessions')), { ...data, createdAt: Date.now() });
   batch.update(doc(col('stringJobs'), data.stringJobId), { playedMinutes: increment(data.minutes) });
   batch.commit().catch(fail);
 }
 
-export function updateSession(old: Session, data: Pick<Session, 'playedAt' | 'minutes' | 'kind'>): void {
+export function updateSession(old: Session, data: Pick<Session, 'playedAt' | 'minutes'> & { remark: string }): void {
   const batch = writeBatch(db);
   batch.update(doc(col('sessions'), old.id), data);
   batch.update(doc(col('stringJobs'), old.stringJobId), { playedMinutes: increment(data.minutes - old.minutes) });

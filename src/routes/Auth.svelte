@@ -47,11 +47,20 @@
 </script>
 
 <main class="page">
-  <h1>🎾 Restring</h1>
-  <p class="muted">Know when your strings are done.</p>
+  <header class="hero" style="text-align:center">
+    <img
+      src="{import.meta.env.BASE_URL}icon.svg"
+      width="64"
+      height="64"
+      alt=""
+      style="border-radius:16px;box-shadow:0 4px 14px rgb(0 0 0 / 0.3)"
+    />
+    <h1 style="margin-top:0.4rem">Restring</h1>
+    <p class="muted">Know when your strings are done.</p>
+  </header>
 
-  <form class="card" style="margin-top:1rem" onsubmit={submit}>
-    <h2 style="margin-top:0">{mode === 'signup' ? 'Create account' : 'Log in'}</h2>
+  <form class="card" onsubmit={submit}>
+    <h3>{mode === 'signup' ? 'Create account' : 'Log in'}</h3>
 
     {#if mode === 'signup'}
       <label>Name<input bind:value={name} autocomplete="name" required /></label>

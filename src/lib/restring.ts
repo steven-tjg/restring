@@ -1,5 +1,5 @@
 import { DEFAULT_LIMITS, typeInfo, typeShort } from './stringTypes';
-import type { Limit, Limits, Session, StringJob, StringType } from './types';
+import type { CutReason, Limit, Limits, Session, StringJob, StringType } from './types';
 
 export type Status = 'good' | 'soon' | 'now';
 
@@ -33,6 +33,36 @@ function parseDate(s: string): Date {
 export function daysBetween(dateStr: string, now: Date): number {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   return Math.round((today.getTime() - parseDate(dateStr).getTime()) / 86_400_000);
+}
+
+/** Durations are always shown in hours: 750 -> "12.5 h", 45 -> "0.75 h", 120 -> "2 h". */
+export function fmtHours(totalMinutes: number): string {
+  return `${+(Math.max(0, totalMinutes) / 60).toFixed(2)} h`;
+}
+
+export const CUT_REASONS: Array<{ value: CutReason; label: string }> = [
+  { value: 'worn', label: 'Worn out' },
+  { value: 'tension', label: 'Lost tension' },
+  { value: 'broke', label: 'Broke' },
+  { value: 'change', label: 'Changing setup' },
+];
+
+/** Why a past string ended. Falls back for strings saved before the Cut flow. */
+export function endLabel(job: Pick<StringJob, 'status' | 'endReason'>): string {
+  if (job.endReason) return CUT_REASONS.find((r) => r.value === job.endReason)?.label ?? 'Cut';
+  if (job.status === 'broken') return 'Broke';
+  if (job.status === 'retired') return 'Replaced';
+  return 'Cut';
+}
+
+/** Whole days between two YYYY-MM-DD dates (b minus a). */
+export function daysBetweenDates(a: string, b: string): number {
+  return Math.round((parseDate(b).getTime() - parseDate(a).getTime()) / 86_400_000);
+}
+
+/** Cost per hour played, or null when there is no cost or no playtime. */
+export function costPerHour(cost: number | null, playedMinutes: number): number | null {
+  return cost && playedMinutes > 0 ? cost / (playedMinutes / 60) : null;
 }
 
 export function mergeLimits(custom?: Partial<Limits>): Limits {

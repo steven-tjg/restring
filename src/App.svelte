@@ -1,10 +1,12 @@
 <script lang="ts">
   import { authReady, user } from './lib/auth';
+  import BottomNav from './lib/BottomNav.svelte';
   import { dataReady, startSync, stopSync, syncError, toast } from './lib/db';
   import { go, match, path } from './lib/router';
   import Auth from './routes/Auth.svelte';
+  import Cut from './routes/Cut.svelte';
   import Home from './routes/Home.svelte';
-  import LogPlay from './routes/LogPlay.svelte';
+  import Playtime from './routes/Playtime.svelte';
   import RacquetDetail from './routes/RacquetDetail.svelte';
   import RacquetForm from './routes/RacquetForm.svelte';
   import Settings from './routes/Settings.svelte';
@@ -12,6 +14,8 @@
 
   const m = $derived(match($path));
   const isAuthRoute = $derived(m.name === 'login' || m.name === 'signup');
+  // Forms hide the nav so the save button is never covered.
+  const showNav = $derived(['home', 'settings', 'racquet'].includes(m.name));
 
   let syncedUid: string | null = null;
   $effect(() => {
@@ -57,9 +61,12 @@
     <RacquetForm id={m.params.id} />
   {:else if m.name === 'stringNew'}
     <StringJobForm racquetId={m.params.id} />
-  {:else if m.name === 'logPlay'}
-    <LogPlay racquetId={m.params.id} />
+  {:else if m.name === 'cut'}
+    <Cut racquetId={m.params.id} />
+  {:else if m.name === 'playtime'}
+    <Playtime racquetId={m.params.id} />
   {/if}
+  {#if showNav}<BottomNav />{/if}
 {/if}
 
 {#if $toast}

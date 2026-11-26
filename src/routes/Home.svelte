@@ -1,7 +1,8 @@
 <script lang="ts">
-  import JobStatus from '../lib/JobStatus.svelte';
+  import Ring from '../lib/Ring.svelte';
+  import { racquetNickname, racquetTitle } from '../lib/catalog';
   import { limits, profile, racquets, sessions, stringJobs } from '../lib/db';
-  import { evaluate } from '../lib/restring';
+  import { evaluate, jobLabel } from '../lib/restring';
 
   const cards = $derived(
     $racquets.map((r) => {
@@ -9,52 +10,69 @@
       return { r, job, ev: job ? evaluate(job, $sessions, $limits) : null };
     }),
   );
+  const attention = $derived(cards.filter((c) => c.ev && c.ev.status !== 'good').length);
+  const first = $derived($profile?.name?.split(' ')[0] ?? '');
+
+  const left = (days: number, status: string) =>
+    status === 'now' ? 'Restring now' : days === 0 ? 'Restring today' : `~${days} day${days === 1 ? '' : 's'} left`;
 </script>
 
-<main class="page">
-  <div class="topbar">
-    <h1>Hi{$profile?.name ? `, ${$profile.name.split(' ')[0]}` : ''} 👋</h1>
-    <a class="btn" href="#/settings" aria-label="Settings">⚙️</a>
-  </div>
+<main class="page with-nav">
+  <header class="hero">
+    <div class="row between">
+      <div>
+        <p class="muted">Welcome back</p>
+        <h1>{first ? `Hi, ${first}` : 'Your racquets'}</h1>
+      </div>
+      <a class="btn" href="#/racquet/new">+ Racquet</a>
+    </div>
+    <p style="margin-top:0.8rem">
+      {#if cards.length === 0}
+        Add a racquet to start tracking string life.
+      {:else if attention > 0}
+        <strong>{attention}</strong> of {cards.length} racquet{cards.length === 1 ? '' : 's'} need a restring soon.
+      {:else}
+        All {cards.length} racquet{cards.length === 1 ? ' is' : 's are'} in good shape.
+      {/if}
+    </p>
+  </header>
 
   {#if cards.length === 0}
     <div class="card">
-      <h2 style="margin-top:0">Add your first racquet</h2>
-      <p class="muted">Then tell us what string is in it and log each time you play.</p>
+      <h3>Add your first racquet</h3>
+      <p class="muted">Pick your brand and model, then the string you use, and log each time you play.</p>
       <a class="btn primary block" style="margin-top:1rem" href="#/racquet/new">Add racquet</a>
     </div>
   {/if}
 
   {#each cards as { r, job, ev } (r.id)}
-    <section class="card">
-      <a href="#/racquet/{r.id}" style="color:inherit;text-decoration:none">
-        <div class="row between">
-          <div class="grow">
-            <h2 style="margin:0">{r.name}</h2>
-            {#if r.brand || r.model}<p class="muted">{[r.brand, r.model].filter(Boolean).join(' ')}</p>{/if}
-          </div>
-          <span class="muted">›</span>
-        </div>
-        <div style="margin-top:0.6rem">
+    <section class="card racq">
+      <a class="racq-main" href="#/racquet/{r.id}">
+        {#if job && ev}
+          <Ring pct={ev.pct} status={ev.status} />
+        {:else}
+          <div class="ring" style="width:72px;height:72px"><span class="pct muted">–</span></div>
+        {/if}
+        <div class="grow">
+          <h3>{racquetTitle(r)}</h3>
+          {#if racquetNickname(r)}<p class="muted">{racquetNickname(r)}</p>{/if}
           {#if job && ev}
-            <JobStatus {job} {ev} />
+            <p class="muted">{jobLabel(job)}</p>
+            <p><span class="badge {ev.status}">{left(ev.daysLeft, ev.status)}</span></p>
           {:else}
-            <p class="muted">No string recorded yet.</p>
+            <p class="muted">Unstrung</p>
           {/if}
         </div>
+        <span class="muted" aria-hidden="true">›</span>
       </a>
-      <div class="row" style="margin-top:0.8rem">
+      <div class="racq-actions">
         {#if job}
-          <a class="btn primary grow" href="#/racquet/{r.id}/log">+ Log play</a>
-          <a class="btn grow" href="#/racquet/{r.id}/string">Restrung</a>
+          <a class="btn primary grow" href="#/racquet/{r.id}/playtime">+ Add playtime</a>
+          <a class="btn grow" href="#/racquet/{r.id}/cut">Cut string</a>
         {:else}
-          <a class="btn primary block" href="#/racquet/{r.id}/string">Add string</a>
+          <a class="btn primary grow" href="#/racquet/{r.id}/string">Add string</a>
         {/if}
       </div>
     </section>
   {/each}
-
-  {#if cards.length > 0}
-    <a class="btn primary fab" href="#/racquet/new">+ Racquet</a>
-  {/if}
 </main>

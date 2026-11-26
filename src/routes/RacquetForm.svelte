@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { racquetBrands, racquetModels, racquetNickname, withCurrent } from '../lib/catalog';
   import { addRacquet, deleteRacquet, racquets, updateRacquet } from '../lib/db';
   import { back, go } from '../lib/router';
 
@@ -6,24 +7,28 @@
 
   const existing = $derived(id ? $racquets.find((r) => r.id === id) : undefined);
 
-  let name = $state('');
   let brand = $state('');
   let model = $state('');
+  let nickname = $state('');
   let loaded = false;
 
   $effect(() => {
     if (existing && !loaded) {
       loaded = true;
-      name = existing.name;
       brand = existing.brand;
       model = existing.model;
+      nickname = racquetNickname(existing);
     }
   });
 
+  // Saved values from before the catalog existed stay selectable.
+  const brandOptions = $derived(withCurrent(racquetBrands(), brand));
+  const modelOptions = $derived(withCurrent(racquetModels(brand), model));
+
   function save(e: Event) {
     e.preventDefault();
-    const data = { name: name.trim(), brand: brand.trim(), model: model.trim() };
-    if (!data.name) return;
+    if (!brand || !model) return;
+    const data = { name: nickname.trim() || `${brand} ${model}`, brand, model };
     if (id) {
       updateRacquet(id, data);
       back(`/racquet/${id}`);
@@ -49,10 +54,25 @@
   </div>
 
   <form class="card" onsubmit={save}>
-    <label>Name / nickname<input bind:value={name} placeholder="e.g. Match racquet" required /></label>
-    <label>Brand<input bind:value={brand} placeholder="e.g. Babolat" /></label>
-    <label>Model<input bind:value={model} placeholder="e.g. Pure Aero" /></label>
-    <button class="primary block" style="margin-top:1rem">{id ? 'Save' : 'Next: add string'}</button>
+    <label>
+      Brand
+      <select bind:value={brand} onchange={() => (model = '')} required>
+        <option value="" disabled>Select brand</option>
+        {#each brandOptions as b (b)}<option value={b}>{b}</option>{/each}
+      </select>
+    </label>
+    <label>
+      Model
+      <select bind:value={model} disabled={!brand} required>
+        <option value="" disabled>{brand ? 'Select model' : 'Select brand first'}</option>
+        {#each modelOptions as m (m)}<option value={m}>{m}</option>{/each}
+      </select>
+    </label>
+    <label>
+      Nickname (optional)
+      <input bind:value={nickname} placeholder="e.g. Match racquet" maxlength="40" />
+    </label>
+    <button class="primary block" style="margin-top:1.2rem">{id ? 'Save' : 'Next: add string'}</button>
   </form>
 
   {#if id}
